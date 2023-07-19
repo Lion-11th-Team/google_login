@@ -3,24 +3,28 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 
 # 헬퍼 클래스
 class UserManager(BaseUserManager):
-    def create_user(self, email, password, **kwargs):
+    def create_user(self, email, password, oauth_id, **kwargs): # email -> oauth_id로 바꿔야 하나?
         # 주어진 이메일, 비밀번호 등 개인정보로 User 인스턴스 생성
         if not email:
             raise ValueError('The Email must be set')
+        if not oauth_id:
+            raise ValueError('The ID must be set')
         email = self.normalize_email(email)
         user = self.model(
             email=email,
+            oauth_id=oauth_id,
         )
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email=None, password=None, **extra_fields):
+    def create_superuser(self, email=None, password=None, oauth_id=0, **extra_fields):
         # 주어진 이메일, 비밀번호 등 개인정보로 User 인스턴스 생성
         # 단, 최상위 사용자이므로 권한을 부여
         superuser = self.create_user(
             email=email,
             password=password,
+            oauth_id=oauth_id,
         )
         superuser.is_staff = True
         superuser.is_superuser = True

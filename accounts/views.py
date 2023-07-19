@@ -4,15 +4,12 @@ import json
 from django.http import JsonResponse
 from json.decoder import JSONDecodeError
 from accounts.models import User
-from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
-from dj_rest_auth.registration.views import SocialLoginView, APIView, AllowAny
-from allauth.socialaccount.providers.google import views as google_view
-from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from dj_rest_auth.registration.views import APIView, AllowAny
 from rest_framework import status
 from rest_framework.response import Response
-#from config.settings import GOOGLE_CLIENT_ID, GOOGLE_SECRET
 from rest_framework_simplejwt.tokens import RefreshToken
+from accounts.serializers import UserSerializer
 
 
 state = getattr(settings, 'STATE')
@@ -77,6 +74,7 @@ class GoogleCallbackAPIView(APIView):
             # 잘못되지 않았으면
             user_info = user_info_request.json()
             oauth_id = user_info["id"]
+            email = user_info["email"]
             # email_req_json = email_req.json()
             # email = email_req_json.get('email')
 
@@ -87,20 +85,21 @@ class GoogleCallbackAPIView(APIView):
                 }, status=status.HTTP_400_BAD_REQUEST)
             
             try:
-                user = User.objects.get(oauth_id=oauth_id) # oauth_id가 oauth_id인 객체 하나를 반환
+                user = User.objects.get(oauth_id=oauth_id) # oauth_id가 oauth_id인 객체 하나를 반환 
                 # 동일한 id를 사용하는 사용자가 db에 있는 경우에
                 refresh = RefreshToken.for_user(user)
-                return Response({
+                return JsonResponse({
                         'access': str(refresh.access_token),
                         'refresh': str(refresh),
                         'register_state': user.is_register,
                     },
                     status=status.HTTP_200_OK,
                 )
-            # 기존에 가입된 유저가 없으면 새로 가입
+            # 기존에 가입된 유저가 없으면 임시로 저장하고 새로 가입
             except User.DoesNotExist:
+                user = User.objects.create_user(email=email, password=None, oauth_id=oauth_id)
                 refresh = RefreshToken.for_user(user)
-                return Response({
+                return JsonResponse({
                         'access': str(refresh.access_token),
                         'refresh': str(refresh),
                         'register_state': user.is_register,
@@ -113,8 +112,9 @@ class GoogleCallbackAPIView(APIView):
             }, status=status.HTTP_404_NOT_FOUND)
         
 
-#로그인 정보 저장
-class GoogleToDjangoLoginView(SocialLoginView):
-    adapter_class = google_view.GoogleOAuth2Adapter
-    callback_url = REDIRECT_URI
-    client_class = OAuth2Client
+# 사용자 정보 조회
+class UserInfoView(APIView):
+    def get(self, request):
+        queryset = User.objects.all()
+        serializer = UserSerializer(queryset, many=True)
+        return Response(serializer.data)
