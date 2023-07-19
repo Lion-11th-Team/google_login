@@ -23,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-k%x16l2-oc9#lyve4=5@#z3c@x9%er1j7cj##v=3dn**@8_rzt'
 
 # "SECRET_KEY" : "secret_key",
-GOOGLE_CLIENT_ID = "google_client_id"
-GOOGLE_SECRET = "google_secret_key"
-STATE = "GOOGLE_LANDOM_STRING"
+#GOOGLE_CLIENT_ID = '374838732950-m9o6ik80g35uf9j7u7mh5jrhatl8869n.apps.googleusercontent.com'
+#GOOGLE_SECRET = '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'
+STATE = 'GOOGLE_LANDOM_STRING'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'corsheaders',
     # site 설정
     'django.contrib.sites',
     'accounts',
@@ -61,6 +63,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -165,6 +168,7 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
+    'TOKEN_USER_CLASS': 'accounts.User',
 }
 	
 # USER 필드 설정에 맞게 변경
@@ -185,3 +189,7 @@ REST_FRAMEWORK = {
     # DEFAULT_AUTHENTICATION_CLASSES는 API가 호출됐을 때 session이나 token을 인증할 클래스들을 정의
 }
 
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:3000',
+]
