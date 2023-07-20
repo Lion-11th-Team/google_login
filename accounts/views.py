@@ -10,6 +10,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from accounts.serializers import UserSerializer
+from django.contrib.auth import get_user_model
 
 
 state = getattr(settings, 'STATE')
@@ -114,7 +115,14 @@ class GoogleCallbackAPIView(APIView):
 
 # 사용자 정보 조회
 class UserInfoView(APIView):
+    #로그인
     def get(self, request):
-        queryset = User.objects.all()
-        serializer = UserSerializer(queryset, many=True)
-        return Response(serializer.data)
+        user_email = request.user
+        print(user_email)
+        user = User.objects.get(email=user_email)
+        print(user)
+        # queryset = User.objects.all()
+        # serializer = UserSerializer(queryset, many=True)
+        # return Response(serializer.data)
+        return Response(UserSerializer(user).data)
+    #회원가입
