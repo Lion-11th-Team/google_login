@@ -118,11 +118,6 @@ class UserInfoView(APIView):
     #로그인
     def get(self, request):
         user_email = request.user
-        print(user_email)
         user = User.objects.get(email=user_email)
-        print(user)
-        # queryset = User.objects.all()
-        # serializer = UserSerializer(queryset, many=True)
-        # return Response(serializer.data)
         return Response(UserSerializer(user).data)
     #회원가입
