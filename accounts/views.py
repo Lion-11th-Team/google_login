@@ -9,8 +9,9 @@ from dj_rest_auth.registration.views import APIView, AllowAny
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from accounts.serializers import UserSerializer
+from accounts.serializers import UserSerializer, UserSignupSerializer
 from django.contrib.auth import get_user_model
+from rest_framework.permissions import IsAuthenticated
 
 
 state = getattr(settings, 'STATE')
@@ -86,27 +87,19 @@ class GoogleCallbackAPIView(APIView):
                 }, status=status.HTTP_400_BAD_REQUEST)
             
             try:
-                user = User.objects.get(oauth_id=oauth_id) # oauth_id가 oauth_id인 객체 하나를 반환 
                 # 동일한 id를 사용하는 사용자가 db에 있는 경우에
-                refresh = RefreshToken.for_user(user)
-                return JsonResponse({
-                        'access': str(refresh.access_token),
-                        'refresh': str(refresh),
-                        'register_state': user.is_register,
-                    },
-                    status=status.HTTP_200_OK,
-                )
+                user = User.objects.get(oauth_id=oauth_id) # oauth_id가 oauth_id인 객체 하나를 반환
             # 기존에 가입된 유저가 없으면 임시로 저장하고 새로 가입
             except User.DoesNotExist:
                 user = User.objects.create_user(email=email, password=None, oauth_id=oauth_id)
-                refresh = RefreshToken.for_user(user)
-                return JsonResponse({
-                        'access': str(refresh.access_token),
-                        'refresh': str(refresh),
-                        'register_state': user.is_register,
-                    },
-                    status=status.HTTP_200_OK,
-                )
+            refresh = RefreshToken.for_user(user)
+            return JsonResponse({
+                    'access': str(refresh.access_token),
+                    'refresh': str(refresh),
+                    'register_state': user.is_register,
+                },
+                status=status.HTTP_200_OK,
+            )
         except:
             return JsonResponse({
                 "error": "error",
@@ -115,9 +108,16 @@ class GoogleCallbackAPIView(APIView):
 
 # 사용자 정보 조회
 class UserInfoView(APIView):
+    permission_classes = (IsAuthenticated,)
     #로그인
     def get(self, request):
-        user_email = request.user
-        user = User.objects.get(email=user_email)
-        return Response(UserSerializer(user).data)
+        # user_email = request.user.email
+        # user = User.objects.get(email=user_email)
+        return Response(UserSerializer(request.user).data)
     #회원가입
+    def post(self, request):
+        signup_serializer = UserSignupSerializer(request.user)
+        if signup_serializer.is_valid(raise_exception=True):
+            signup_serializer.save(is_register=True)
+            return Response(UserSerializer(request.user).data)
+        return Response(signup_serializer.errors)
