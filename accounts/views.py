@@ -116,7 +116,7 @@ class UserInfoView(APIView):
         return Response(UserSerializer(request.user).data)
     #회원가입
     def post(self, request):
-        signup_serializer = UserSignupSerializer(request.user)
+        signup_serializer = UserSignupSerializer(request.user, data=request.data)
         if signup_serializer.is_valid(raise_exception=True):
             signup_serializer.save(is_register=True)
             return Response(UserSerializer(request.user).data)
