@@ -22,7 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
 class UserSignupSerializer(serializers.ModelField):
     class Meta:
         model = User
-        field = ['name', 'phone', 'univ', 'track', 'student_id']
+        fields = ['name', 'phone', 'univ', 'track', 'student_id']
     
     def get_queryset(self):
         return super().get_queryset().filter(is_register=False)
