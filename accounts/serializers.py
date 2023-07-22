@@ -29,7 +29,7 @@ class UserSignupSerializer(serializers.ModelField):
     
     def create(self, data):
         user = User.registers.create_user(
-            oauth_id = data['ouath_id']
+            oauth_id = data['oauth_id']
         )
         return user
 
