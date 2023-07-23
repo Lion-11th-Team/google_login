@@ -65,8 +65,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=50, null=False, default=False, blank=False)
     phone = models.CharField(max_length=20, null=False, default=False, blank=False)
     univ = models.CharField(max_length=50, null=False, default=False, blank=False)
-    track = models.CharField(max_length=10, null=False, default=False, blank=False)
-    student_id = models.CharField(max_length=50, choices=TRACK_CHOICES, null=False, default=False, blank=False)
+    track = models.CharField(max_length=10, choices=TRACK_CHOICES, null=False, default=False, blank=False)
+    student_id = models.CharField(max_length=50, null=False, default=False, blank=False)
 
 	# 헬퍼 클래스 사용
     objects = UserManager() # default manager

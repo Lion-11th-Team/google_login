@@ -3,7 +3,8 @@ import requests
 import json
 from django.http import JsonResponse
 from json.decoder import JSONDecodeError
-from accounts.models import User
+# from accounts.models import User
+from django.contrib.auth import get_user_model
 from django.conf import settings
 from dj_rest_auth.registration.views import APIView, AllowAny
 from rest_framework import status
@@ -13,6 +14,7 @@ from accounts.serializers import UserSerializer, UserSignupSerializer
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticated
 
+User = get_user_model()
 
 state = getattr(settings, 'STATE')
 BASE_URL = 'http://localhost:3000/'
@@ -116,8 +118,8 @@ class UserInfoView(APIView):
         return Response(UserSerializer(request.user).data)
     #회원가입
     def post(self, request):
-        signup_serializer = UserSignupSerializer(request.user, data=request.data)
-        if signup_serializer.is_valid(raise_exception=True):
+        signup_serializer = UserSignupSerializer(request.user, data=request.data, partial=True)
+        if signup_serializer.is_valid():
             signup_serializer.save(is_register=True)
             return Response(UserSerializer(request.user).data)
-        return Response(signup_serializer.errors)
+        return Response(signup_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
